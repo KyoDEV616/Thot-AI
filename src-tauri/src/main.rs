@@ -65,7 +65,10 @@ fn minimize_window(window: tauri::WebviewWindow) {
 
 #[tauri::command]
 fn toggle_maximize_window(window: tauri::WebviewWindow) {
-    let _ = window.toggle_maximize();
+    match window.is_maximized() {
+        Ok(true) => { let _ = window.unmaximize(); }
+        _ =>        { let _ = window.maximize(); }
+    }
 }
 
 #[tauri::command]
