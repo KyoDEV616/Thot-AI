@@ -58,6 +58,21 @@ fn get_backend_port(state: State<'_, Mutex<u16>>) -> u16 {
     *state.lock().unwrap()
 }
 
+#[tauri::command]
+fn minimize_window(window: tauri::WebviewWindow) {
+    let _ = window.minimize();
+}
+
+#[tauri::command]
+fn toggle_maximize_window(window: tauri::WebviewWindow) {
+    let _ = window.toggle_maximize();
+}
+
+#[tauri::command]
+fn close_window(window: tauri::WebviewWindow) {
+    let _ = window.close();
+}
+
 fn main() {
     let port = find_free_port();
 
@@ -85,7 +100,12 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![get_backend_port])
+        .invoke_handler(tauri::generate_handler![
+            get_backend_port,
+            minimize_window,
+            toggle_maximize_window,
+            close_window,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

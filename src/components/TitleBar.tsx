@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Moon, Sun, Settings, PanelLeftClose, Check } from "lucide-react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { invoke } from "@tauri-apps/api/core";
 import { useStore, type Theme } from "../store";
 import { ThotLogo } from "./ThotLogo";
 
@@ -103,18 +103,21 @@ export function TitleBar() {
           <Settings size={16} />
         </button>
 
-        {/* Window controls */}
+        {/* Window controls — use Rust commands for guaranteed native access */}
         <div className="flex items-center gap-1.5 ml-2">
           <button
-            onClick={() => getCurrentWindow().minimize()}
+            onClick={() => invoke("minimize_window")}
+            title="Minimize"
             className="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
           />
           <button
-            onClick={() => getCurrentWindow().toggleMaximize()}
+            onClick={() => invoke("toggle_maximize_window")}
+            title="Maximize"
             className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-400 transition-colors"
           />
           <button
-            onClick={() => getCurrentWindow().close()}
+            onClick={() => invoke("close_window")}
+            title="Close"
             className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-400 transition-colors"
           />
         </div>
