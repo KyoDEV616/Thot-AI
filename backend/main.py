@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import chat, files, images, search
+from routers import chat, files, images, search, models, system
 from services.database import init_db
 
 app = FastAPI(title="Thot AI Backend", version="0.1.0")
@@ -20,6 +20,8 @@ app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(images.router, prefix="/api/images", tags=["images"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
+app.include_router(models.router, prefix="/api/models", tags=["models"])
+app.include_router(system.router, prefix="/api/system", tags=["system"])
 
 
 @app.on_event("startup")
