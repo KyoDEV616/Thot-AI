@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, MessageSquare } from "lucide-react";
+import { Plus, Search, MessageSquare, Pencil } from "lucide-react";
 import { useStore, type Conversation } from "../../store";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 function ConversationItem({
   conv,
@@ -12,6 +12,27 @@ function ConversationItem({
   isActive: boolean;
   onClick: () => void;
 }) {
+  const { updateConversationTitle } = useStore();
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState(conv.title);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing && inputRef.current) inputRef.current.focus();
+  }, [editing]);
+
+  // Keep editValue in sync if title changes externally while not editing
+  useEffect(() => {
+    if (!editing) setEditValue(conv.title);
+  }, [conv.title, editing]);
+
+  const commit = () => {
+    const trimmed = editValue.trim();
+    if (trimmed && trimmed !== conv.title) updateConversationTitle(conv.id, trimmed);
+    else setEditValue(conv.title);
+    setEditing(false);
+  };
+
   return (
     <button
       onClick={onClick}
@@ -25,7 +46,32 @@ function ConversationItem({
       }}
     >
       <MessageSquare size={14} className="mt-0.5 shrink-0" />
-      <span className="text-sm truncate leading-snug">{conv.title}</span>
+      {editing ? (
+        <input
+          ref={inputRef}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit();
+            if (e.key === "Escape") { setEditValue(conv.title); setEditing(false); }
+            e.stopPropagation();
+          }}
+          onClick={(e) => e.stopPropagation()}
+          className="flex-1 bg-transparent outline-none text-sm border-b"
+          style={{ borderColor: "var(--color-accent-primary)", color: "var(--color-text-primary)" }}
+        />
+      ) : (
+        <>
+          <span
+            className="text-sm truncate leading-snug flex-1 cursor-text"
+            onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
+          >
+            {conv.title}
+          </span>
+          <Pencil size={12} className="shrink-0 opacity-0 group-hover:opacity-50 transition-opacity" />
+        </>
+      )}
     </button>
   );
 }

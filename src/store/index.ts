@@ -31,12 +31,19 @@ interface AppState {
   createConversation: () => string;
   addMessage: (conversationId: string, message: Message) => void;
   updateLastMessage: (conversationId: string, content: string) => void;
+  updateConversationTitle: (id: string, title: string) => void;
 
   // UI
   sidebarOpen: boolean;
   toggleSidebar: () => void;
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  darkMode: boolean;
+  setDarkMode: (v: boolean) => void;
+  settingsOpen: boolean;
+  setSettingsOpen: (v: boolean) => void;
+  modelManagerOpen: boolean;
+  setModelManagerOpen: (v: boolean) => void;
 
   // Model
   selectedModel: string;
@@ -98,11 +105,23 @@ export const useStore = create<AppState>()(
             return { ...c, messages: msgs };
           }),
         })),
+      updateConversationTitle: (id, title) =>
+        set((state) => ({
+          conversations: state.conversations.map((c) =>
+            c.id === id ? { ...c, title } : c
+          ),
+        })),
 
       sidebarOpen: true,
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       theme: "pyramid",
       setTheme: (theme) => set({ theme }),
+      darkMode: true,
+      setDarkMode: (v) => set({ darkMode: v }),
+      settingsOpen: false,
+      setSettingsOpen: (v) => set({ settingsOpen: v }),
+      modelManagerOpen: false,
+      setModelManagerOpen: (v) => set({ modelManagerOpen: v }),
 
       selectedModel: "",
       setSelectedModel: (model) => set({ selectedModel: model }),
@@ -123,6 +142,7 @@ export const useStore = create<AppState>()(
       partialize: (state) => ({
         conversations: state.conversations,
         theme: state.theme,
+        darkMode: state.darkMode,
         selectedModel: state.selectedModel,
         systemPrompt: state.systemPrompt,
         sidebarOpen: state.sidebarOpen,

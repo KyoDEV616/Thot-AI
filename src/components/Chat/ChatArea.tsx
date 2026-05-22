@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Send, ChevronDown, Wifi, WifiOff } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { Send, Wifi, WifiOff } from "lucide-react";
 import { useStore, type Message } from "../../store";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 import { ModelSelector } from "./ModelSelector";
+
+interface SystemStats {
+  cpu_percent: number;
+  cpu_cores: number;
+  ram_used_gb: number;
+  ram_total_gb: number;
+  ollama_running: boolean;
+}
 
 export function ChatArea() {
   const {
@@ -26,6 +34,7 @@ export function ChatArea() {
   } = useStore();
 
   const [input, setInput] = useState("");
+  const [sysStats, setSysStats] = useState<SystemStats | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -38,6 +47,21 @@ export function ChatArea() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isStreaming]);
+
+  // Poll system stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`http://127.0.0.1:${backendPort}/api/system/stats`);
+        if (res.ok) setSysStats(await res.json());
+      } catch {
+        // silent — widget simply won't show
+      }
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000);
+    return () => clearInterval(interval);
+  }, [backendPort]);
 
   // Fetch available models from Ollama
   useEffect(() => {
@@ -169,20 +193,35 @@ export function ChatArea() {
         style={{ borderBottom: "1px solid var(--color-border)" }}
       >
         <ModelSelector />
-        <div className="flex items-center gap-1.5">
-          {ollamaStatus === "online" ? (
-            <Wifi size={14} style={{ color: "#22c55e" }} />
-          ) : (
-            <WifiOff size={14} style={{ color: "#ef4444" }} />
+        <div className="flex items-center gap-3">
+          {sysStats && (
+            <div className="flex items-center gap-2 text-xs" style={{ color: "var(--color-text-muted)" }}>
+              <span>CPU {Math.round(sysStats.cpu_percent)}%</span>
+              <span>RAM {sysStats.ram_used_gb.toFixed(1)}/{sysStats.ram_total_gb.toFixed(0)} GB</span>
+              <span className="flex items-center gap-1">
+                <span
+                  className="w-1.5 h-1.5 rounded-full inline-block"
+                  style={{ background: sysStats.ollama_running ? "#22c55e" : "#ef4444" }}
+                />
+                Ollama
+              </span>
+            </div>
           )}
-          <span
-            className="text-xs"
-            style={{
-              color: ollamaStatus === "online" ? "#22c55e" : "#ef4444",
-            }}
-          >
-            Ollama {ollamaStatus === "online" ? "conectado" : "desconectado"}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {ollamaStatus === "online" ? (
+              <Wifi size={14} style={{ color: "#22c55e" }} />
+            ) : (
+              <WifiOff size={14} style={{ color: "#ef4444" }} />
+            )}
+            <span
+              className="text-xs"
+              style={{
+                color: ollamaStatus === "online" ? "#22c55e" : "#ef4444",
+              }}
+            >
+              Ollama {ollamaStatus === "online" ? "conectado" : "desconectado"}
+            </span>
+          </div>
         </div>
       </div>
 
