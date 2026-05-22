@@ -3,8 +3,9 @@ dist/
 target/
 src-tauri/target/
 backend/.venv/
-backend/__pycache__/
-backend/*.pyc
+**/__pycache__/
+**/*.pyc
+**/*.pyo
 *.db
 .env
 .DS_Store
