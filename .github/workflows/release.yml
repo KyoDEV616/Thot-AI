@@ -1,0 +1,161 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v0.1.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-backend:
+    name: Build Python backend (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            triple: aarch64-apple-darwin
+            python: '3.11'
+          - os: macos-13
+            triple: x86_64-apple-darwin
+            python: '3.11'
+          - os: ubuntu-22.04
+            triple: x86_64-unknown-linux-gnu
+            python: '3.11'
+          - os: windows-latest
+            triple: x86_64-pc-windows-msvc
+            python: '3.11'
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install core Python dependencies
+        shell: bash
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install pyinstaller fastapi "uvicorn[standard]" httpx \
+            sqlalchemy aiosqlite python-multipart pydantic pydantic-settings \
+            Pillow duckduckgo-search python-docx openpyxl psutil
+
+      - name: Build backend binary with PyInstaller
+        shell: bash
+        run: |
+          cd backend
+          pyinstaller standalone.spec --distpath dist --workpath build --noconfirm
+
+      - name: Upload backend binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: thot-backend-${{ matrix.triple }}
+          path: |
+            backend/dist/thot-backend
+            backend/dist/thot-backend.exe
+          if-no-files-found: ignore
+          retention-days: 1
+
+  build-tauri:
+    name: Build Tauri app (${{ matrix.os }})
+    needs: build-backend
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            triple: aarch64-apple-darwin
+            tauri-args: '--target aarch64-apple-darwin'
+          - os: macos-13
+            triple: x86_64-apple-darwin
+            tauri-args: '--target x86_64-apple-darwin'
+          - os: ubuntu-22.04
+            triple: x86_64-unknown-linux-gnu
+            tauri-args: ''
+          - os: windows-latest
+            triple: x86_64-pc-windows-msvc
+            tauri-args: ''
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Add macOS ARM target
+        if: matrix.triple == 'aarch64-apple-darwin'
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Download backend binary
+        uses: actions/download-artifact@v4
+        with:
+          name: thot-backend-${{ matrix.triple }}
+          path: backend-binary
+
+      - name: Place backend binary as Tauri sidecar
+        shell: bash
+        run: |
+          mkdir -p src-tauri/binaries
+          TRIPLE="${{ matrix.triple }}"
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            cp backend-binary/thot-backend.exe "src-tauri/binaries/thot-backend-${TRIPLE}.exe"
+          else
+            cp backend-binary/thot-backend "src-tauri/binaries/thot-backend-${TRIPLE}"
+            chmod +x "src-tauri/binaries/thot-backend-${TRIPLE}"
+          fi
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Build and release with Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Thot AI ${{ github.ref_name }}'
+          releaseBody: |
+            ## Thot AI ${{ github.ref_name }}
+
+            **Requirements before installing:**
+            - [Ollama](https://ollama.com) — download and install, then pull at least one model: `ollama pull llama3.2`
+
+            **Download for your platform:**
+            | Platform | File |
+            |----------|------|
+            | macOS Apple Silicon | `Thot-AI_*_aarch64.dmg` |
+            | macOS Intel | `Thot-AI_*_x64.dmg` |
+            | Windows | `Thot-AI_*_x64-setup.exe` |
+            | Linux | `Thot-AI_*_amd64.AppImage` |
+
+            > Image generation and advanced file reading require additional Python setup. See [README](https://github.com/${{ github.repository }}#-installation) for details.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.tauri-args }}

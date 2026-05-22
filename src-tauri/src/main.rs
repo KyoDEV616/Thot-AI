@@ -16,41 +16,49 @@ fn find_free_port() -> u16 {
 }
 
 fn start_backend(port: u16) -> Child {
-    let app_dir = std::env::current_exe()
-        .expect("Failed to get exe path")
-        .parent()
-        .expect("Failed to get exe dir")
-        .to_path_buf();
-
-    // In dev mode, look for backend relative to the workspace
-    let backend_dir = if cfg!(debug_assertions) {
+    if cfg!(debug_assertions) {
+        // Dev mode: launch from .venv
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        std::path::PathBuf::from(manifest_dir)
+        let backend_dir = std::path::PathBuf::from(manifest_dir)
             .parent()
             .unwrap()
-            .join("backend")
-    } else {
-        app_dir.join("backend")
-    };
+            .join("backend");
 
-    let python = backend_dir.join(".venv").join(if cfg!(target_os = "windows") {
-        "Scripts/python.exe"
-    } else {
-        "bin/python"
-    });
+        let python = backend_dir.join(".venv").join(if cfg!(target_os = "windows") {
+            "Scripts/python.exe"
+        } else {
+            "bin/python"
+        });
 
-    Command::new(python)
-        .arg("-m")
-        .arg("uvicorn")
-        .arg("main:app")
-        .arg("--host")
-        .arg("127.0.0.1")
-        .arg("--port")
-        .arg(port.to_string())
-        .current_dir(&backend_dir)
-        .env("THOT_PORT", port.to_string())
-        .spawn()
-        .expect("Failed to start Python backend")
+        Command::new(python)
+            .arg("-m")
+            .arg("uvicorn")
+            .arg("main:app")
+            .arg("--host")
+            .arg("127.0.0.1")
+            .arg("--port")
+            .arg(port.to_string())
+            .current_dir(&backend_dir)
+            .env("THOT_PORT", port.to_string())
+            .spawn()
+            .expect("Failed to start Python backend")
+    } else {
+        // Release mode: launch PyInstaller sidecar
+        let sidecar = std::env::current_exe()
+            .expect("Failed to get exe path")
+            .parent()
+            .expect("Failed to get exe dir")
+            .join(if cfg!(target_os = "windows") {
+                "thot-backend.exe"
+            } else {
+                "thot-backend"
+            });
+
+        Command::new(sidecar)
+            .env("THOT_PORT", port.to_string())
+            .spawn()
+            .expect("Failed to start backend sidecar")
+    }
 }
 
 #[tauri::command]

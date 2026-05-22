@@ -6,8 +6,13 @@ import time
 from pathlib import Path
 from typing import Optional
 
-import torch
-from diffusers import AutoPipelineForText2Image
+try:
+    import torch
+    from diffusers import AutoPipelineForText2Image
+    _HAS_TORCH = True
+except ImportError:
+    _HAS_TORCH = False
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from PIL import Image
@@ -21,6 +26,8 @@ _pipeline = None
 
 
 def _get_pipeline():
+    if not _HAS_TORCH:
+        return None
     global _pipeline
     if _pipeline is None:
         device = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -53,6 +60,12 @@ class ImageResponse(BaseModel):
 
 @router.post("/generate", response_model=ImageResponse)
 async def generate_image(req: ImageRequest):
+    if not _HAS_TORCH:
+        raise HTTPException(
+            status_code=501,
+            detail="Image generation requires torch and diffusers. Run: pip install torch diffusers transformers accelerate"
+        )
+
     if not req.prompt.strip():
         raise HTTPException(status_code=400, detail="Prompt cannot be empty")
 

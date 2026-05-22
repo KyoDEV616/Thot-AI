@@ -86,6 +86,8 @@ Download the installer for your platform from the [**Releases**](../../releases)
 
 **[Ollama](https://ollama.com) must be installed before running Thot AI.** The setup wizard will guide you on first launch.
 
+> **Note:** Image generation (`/imagen`) requires additional setup. See Option 2.
+
 ### Option 2 — Build from source
 
 **Prerequisites:**
@@ -114,6 +116,19 @@ npm run tauri dev
 ```
 
 > **macOS + Homebrew:** If Python 3.11 is not your system default, install it with `brew install python@3.11` and use `/opt/homebrew/opt/python@3.11/bin/python3.11 -m venv backend/.venv`.
+
+> **Full feature set:** Building from source and installing all dependencies in `requirements.txt` enables every feature, including image generation (`/imagen` via torch + diffusers) and advanced file reading (PDF, DOCX, XLSX via llama-index). The pre-built installer ships a lightweight sidecar that omits these heavy ML libraries by default.
+
+### Triggering a release (maintainers)
+
+Push a version tag to trigger the GitHub Actions build pipeline:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions will build installers for macOS (ARM + Intel), Windows, and Linux, and create a draft release with all artifacts attached.
 
 ---
 

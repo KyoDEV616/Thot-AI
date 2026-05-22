@@ -4,12 +4,17 @@ import os
 import tempfile
 from pathlib import Path
 
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, Settings
-from llama_index.core.node_parser import SentenceSplitter
+try:
+    from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, Settings
+    from llama_index.core.node_parser import SentenceSplitter
+    _HAS_LLAMA = True
+except ImportError:
+    _HAS_LLAMA = False
 
 
-Settings.chunk_size = 512
-Settings.chunk_overlap = 50
+if _HAS_LLAMA:
+    Settings.chunk_size = 512
+    Settings.chunk_overlap = 50
 
 
 async def extract_text(file_bytes: bytes, filename: str) -> str:
@@ -17,6 +22,13 @@ async def extract_text(file_bytes: bytes, filename: str) -> str:
     Saves file to a temp directory, reads it with LlamaIndex,
     and returns a string of extracted text chunks joined together.
     """
+    if not _HAS_LLAMA:
+        # Fallback: plain text extraction for txt/csv, error for others
+        suffix = Path(filename).suffix.lower()
+        if suffix in ('.txt', '.csv'):
+            return file_bytes.decode('utf-8', errors='replace')[:4000]
+        raise ValueError("Full file extraction requires llama-index. Run: pip install llama-index-core llama-index-readers-file")
+
     suffix = Path(filename).suffix.lower()
 
     with tempfile.TemporaryDirectory() as tmpdir:
