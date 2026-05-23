@@ -1,0 +1,5 @@
+src-tauri/target/**
+src-tauri/icons/**
+src-tauri/gen/**
+src-tauri/binaries/**
+src-tauri/Cargo.lock
