@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Cpu, Shield, Sliders, Package } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useStore, type Theme } from "../../store";
 import { ModelManager } from "../Models/ModelManager";
 
