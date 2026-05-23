@@ -32,6 +32,7 @@ export function ModelManager() {
   const [customName, setCustomName] = useState("");
   const [pullProgress, setPullProgress] = useState<PullProgress | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const fetchInstalled = async () => {
     try {
@@ -59,13 +60,13 @@ export function ModelManager() {
   }, [backendPort]);
 
   const deleteModel = async (name: string) => {
-    if (!window.confirm(`¿Eliminar el modelo "${name}"? Esta acción no se puede deshacer.`)) return;
     try {
       await fetch(`http://127.0.0.1:${backendPort}/api/models/${encodeURIComponent(name)}`, {
         method: "DELETE",
       });
       await fetchInstalled();
     } catch {}
+    setConfirmDelete(null);
   };
 
   const pullModel = async (modelName: string) => {
@@ -156,13 +157,32 @@ export function ModelManager() {
                     {m.quantization ? ` · ${m.quantization}` : ""}
                   </span>
                 </div>
-                <button
-                  onClick={() => deleteModel(m.name)}
-                  className="p-1.5 rounded hover:opacity-80 transition-opacity"
-                  style={{ color: "#ef4444" }}
-                >
-                  <Trash2 size={14} />
-                </button>
+                {confirmDelete === m.name ? (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => deleteModel(m.name)}
+                      className="px-2 py-1 rounded text-xs font-medium"
+                      style={{ background: "#ef4444", color: "white" }}
+                    >
+                      Eliminar
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(null)}
+                      className="px-2 py-1 rounded text-xs"
+                      style={{ color: "var(--color-text-muted)", border: "1px solid var(--color-border)" }}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDelete(m.name)}
+                    className="p-1.5 rounded hover:opacity-80 transition-opacity"
+                    style={{ color: "#ef4444" }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             ))}
           </div>

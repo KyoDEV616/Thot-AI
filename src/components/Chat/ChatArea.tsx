@@ -5,6 +5,7 @@ import { useStore, type Message } from "../../store";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 import { ModelSelector } from "./ModelSelector";
+import { OllamaSetup } from "../OllamaSetup";
 
 interface SystemStats {
   cpu_percent: number;
@@ -35,8 +36,10 @@ export function ChatArea() {
 
   const [input, setInput] = useState("");
   const [sysStats, setSysStats] = useState<SystemStats | null>(null);
+  const [showOllamaSetup, setShowOllamaSetup] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const ollamaOfflineSince = useRef<number | null>(null);
 
   const activeConversation = conversations.find(
     (c) => c.id === activeConversationId
@@ -63,7 +66,7 @@ export function ChatArea() {
     return () => clearInterval(interval);
   }, [backendPort]);
 
-  // Fetch available models from Ollama
+  // Poll Ollama status every 2s for real-time feedback
   useEffect(() => {
     const checkOllama = async () => {
       try {
@@ -73,16 +76,22 @@ export function ChatArea() {
           const models: string[] = (data.models ?? []).map((m: { name: string }) => m.name);
           setAvailableModels(models);
           setOllamaStatus("online");
+          ollamaOfflineSince.current = null;
+          setShowOllamaSetup(false);
         } else {
           setOllamaStatus("offline");
+          if (!ollamaOfflineSince.current) ollamaOfflineSince.current = Date.now();
+          if (Date.now() - ollamaOfflineSince.current > 6000) setShowOllamaSetup(true);
         }
       } catch {
         setOllamaStatus("offline");
+        if (!ollamaOfflineSince.current) ollamaOfflineSince.current = Date.now();
+        if (Date.now() - ollamaOfflineSince.current > 6000) setShowOllamaSetup(true);
       }
     };
 
     checkOllama();
-    const interval = setInterval(checkOllama, 5000);
+    const interval = setInterval(checkOllama, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -187,6 +196,9 @@ export function ChatArea() {
       className="flex-1 flex flex-col h-full overflow-hidden"
       style={{ background: "var(--color-bg-primary)" }}
     >
+      {showOllamaSetup && (
+        <OllamaSetup onDismiss={() => { setShowOllamaSetup(false); ollamaOfflineSince.current = null; }} />
+      )}
       {/* Top bar */}
       <div
         className="flex items-center justify-between px-4 py-2 shrink-0"

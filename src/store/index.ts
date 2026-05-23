@@ -29,6 +29,7 @@ interface AppState {
   activeConversationId: string | null;
   setActiveConversation: (id: string) => void;
   createConversation: () => string;
+  deleteConversation: (id: string) => void;
   addMessage: (conversationId: string, message: Message) => void;
   updateLastMessage: (conversationId: string, content: string) => void;
   updateConversationTitle: (id: string, title: string) => void;
@@ -105,6 +106,15 @@ export const useStore = create<AppState>()(
             return { ...c, messages: msgs };
           }),
         })),
+      deleteConversation: (id) =>
+        set((state) => {
+          const remaining = state.conversations.filter((c) => c.id !== id);
+          const nextActive =
+            state.activeConversationId === id
+              ? (remaining[0]?.id ?? null)
+              : state.activeConversationId;
+          return { conversations: remaining, activeConversationId: nextActive };
+        }),
       updateConversationTitle: (id, title) =>
         set((state) => ({
           conversations: state.conversations.map((c) =>

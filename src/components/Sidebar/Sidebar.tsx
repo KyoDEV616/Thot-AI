@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, MessageSquare, Pencil } from "lucide-react";
+import { Plus, Search, MessageSquare, Pencil, Trash2 } from "lucide-react";
 import { useStore, type Conversation } from "../../store";
 import { useState, useRef, useEffect } from "react";
 
@@ -12,7 +12,7 @@ function ConversationItem({
   isActive: boolean;
   onClick: () => void;
 }) {
-  const { updateConversationTitle } = useStore();
+  const { updateConversationTitle, deleteConversation } = useStore();
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(conv.title);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -69,7 +69,17 @@ function ConversationItem({
           >
             {conv.title}
           </span>
-          <Pencil size={12} className="shrink-0 opacity-0 group-hover:opacity-50 transition-opacity" />
+          <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Pencil size={12} style={{ color: "var(--color-text-muted)" }} />
+            <span
+              role="button"
+              onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
+              className="p-0.5 rounded hover:opacity-80 transition-opacity"
+              style={{ color: "#ef4444" }}
+            >
+              <Trash2 size={12} />
+            </span>
+          </div>
         </>
       )}
     </button>

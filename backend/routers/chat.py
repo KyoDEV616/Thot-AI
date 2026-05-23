@@ -56,14 +56,15 @@ async def chat_stream(req: ChatRequest):
     # Build Ollama messages list
     ollama_messages: list[dict] = []
 
-    system_content = req.system_prompt or (
-        "You are Thot, an AI assistant inspired by the Egyptian god of knowledge. "
-        "You are the ASSISTANT — the one answering questions. "
-        "The person you are talking to is the USER, a human being. "
-        "Never confuse yourself with the user. Never say that the user is Thot. "
-        "Always refer to yourself as Thot and address the human as 'you'. "
-        "Be precise, reflective, and scholarly, but also accessible and friendly."
+    identity = (
+        "Your name is Thot. You are an AI assistant inspired by the Egyptian god of knowledge. "
+        "You are the ASSISTANT. The person talking to you is the USER — a human being. "
+        "NEVER say you are the user. NEVER call the user 'Thot'. "
+        "Always introduce yourself as Thot regardless of which AI model is running underneath. "
+        "Your identity is Thot, not the name of the underlying model. "
     )
+    custom = req.system_prompt or "Be precise, reflective, and scholarly, but also accessible and friendly."
+    system_content = identity + custom
     if req.context_text:
         system_content += f"\n\nContexto del archivo adjunto:\n{req.context_text}"
 
