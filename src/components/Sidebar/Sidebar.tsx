@@ -107,7 +107,7 @@ export function Sidebar() {
           initial={{ width: 0, opacity: 0 }}
           animate={{ width: 260, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           className="flex flex-col shrink-0 overflow-hidden h-full"
           style={{
             background: "var(--color-bg-secondary)",
@@ -115,9 +115,12 @@ export function Sidebar() {
           }}
         >
           <div className="p-3 flex flex-col gap-2 shrink-0">
-            <button
+            <motion.button
               onClick={() => createConversation()}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-all duration-150 hover:opacity-90 active:scale-95"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium"
               style={{
                 background:
                   "linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary)22)",
@@ -127,7 +130,7 @@ export function Sidebar() {
             >
               <Plus size={16} />
               Nueva conversación
-            </button>
+            </motion.button>
 
             <div
               className="flex items-center gap-2 px-3 py-2 rounded-lg"
@@ -149,23 +152,41 @@ export function Sidebar() {
           </div>
 
           <nav className="flex-1 overflow-y-auto px-2 pb-4 flex flex-col gap-0.5">
-            {filtered.length === 0 ? (
-              <p
-                className="text-xs text-center mt-8 px-4"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                {search ? "Sin resultados" : "No hay conversaciones aún"}
-              </p>
-            ) : (
-              filtered.map((conv) => (
-                <ConversationItem
-                  key={conv.id}
-                  conv={conv}
-                  isActive={conv.id === activeConversationId}
-                  onClick={() => setActiveConversation(conv.id)}
-                />
-              ))
-            )}
+            <AnimatePresence initial={false}>
+              {filtered.length === 0 ? (
+                <motion.p
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-xs text-center mt-8 px-4"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {search ? "Sin resultados" : "No hay conversaciones aún"}
+                </motion.p>
+              ) : (
+                filtered.map((conv, i) => (
+                  <motion.div
+                    key={conv.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8, height: 0, marginBottom: 0 }}
+                    transition={{
+                      duration: 0.22,
+                      ease: [0.16, 1, 0.3, 1],
+                      delay: i < 8 ? i * 0.03 : 0,
+                    }}
+                  >
+                    <ConversationItem
+                      conv={conv}
+                      isActive={conv.id === activeConversationId}
+                      onClick={() => setActiveConversation(conv.id)}
+                    />
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
           </nav>
 
           <div

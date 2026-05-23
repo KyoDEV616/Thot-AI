@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Cpu, Shield, Sliders, Package } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useStore, type Theme } from "../../store";
 import { ModelManager } from "../Models/ModelManager";
 
@@ -85,10 +85,10 @@ export function SettingsPanel() {
       onClick={() => setSettingsOpen(false)}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.15 }}
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col"
         style={{
           background: "var(--color-bg-secondary)",
@@ -106,13 +106,16 @@ export function SettingsPanel() {
           <h2 className="text-base font-semibold" style={{ color: "var(--color-text-primary)" }}>
             Configuración
           </h2>
-          <button
+          <motion.button
             onClick={() => setSettingsOpen(false)}
-            className="p-1.5 rounded-lg hover:opacity-70 transition-opacity"
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="p-1.5 rounded-lg"
             style={{ color: "var(--color-text-muted)" }}
           >
             <X size={16} />
-          </button>
+          </motion.button>
         </div>
 
         {/* Tabs */}
@@ -139,6 +142,14 @@ export function SettingsPanel() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            >
           {activeTab === "general" && (
             <div className="flex flex-col gap-5">
               {/* System prompt */}
@@ -301,6 +312,8 @@ export function SettingsPanel() {
               ))}
             </div>
           )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </motion.div>
     </div>

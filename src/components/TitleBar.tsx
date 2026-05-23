@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Moon, Sun, Settings, PanelLeftClose, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Moon, Sun, Settings, PanelLeftClose, PanelLeftOpen, Check, X, Minus, Maximize2 } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { useStore, type Theme } from "../store";
 import { ThotLogo } from "./ThotLogo";
@@ -10,8 +11,52 @@ const THEMES: { value: Theme; label: string }[] = [
   { value: "forest", label: "Forest" },
 ];
 
+function WindowControl({
+  color,
+  hoverColor,
+  onClick,
+  icon,
+  title,
+}: {
+  color: string;
+  hoverColor: string;
+  onClick: () => void;
+  icon: React.ReactNode;
+  title: string;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <motion.button
+      onClick={onClick}
+      title={title}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      whileHover={{ scale: 1.15 }}
+      whileTap={{ scale: 0.88 }}
+      transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+      className="w-3 h-3 rounded-full flex items-center justify-center"
+      style={{ background: hovered ? hoverColor : color }}
+    >
+      <AnimatePresence>
+        {hovered && (
+          <motion.span
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ duration: 0.1 }}
+            className="flex items-center justify-center"
+            style={{ color: "rgba(0,0,0,0.55)" }}
+          >
+            {icon}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  );
+}
+
 export function TitleBar() {
-  const { theme, setTheme, toggleSidebar, darkMode, setDarkMode, setSettingsOpen } = useStore();
+  const { theme, setTheme, toggleSidebar, sidebarOpen, darkMode, setDarkMode, setSettingsOpen } = useStore();
   const [themeOpen, setThemeOpen] = useState(false);
 
   return (
@@ -23,14 +68,18 @@ export function TitleBar() {
         borderBottom: "1px solid var(--color-border)",
       }}
     >
+      {/* Left: sidebar toggle + app identity */}
       <div className="flex items-center gap-2">
-        <button
+        <motion.button
           onClick={toggleSidebar}
-          className="p-1.5 rounded-lg transition-colors duration-150 hover:opacity-80"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.93 }}
+          transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className="p-1.5 rounded-lg"
           style={{ color: "var(--color-text-secondary)" }}
         >
-          <PanelLeftClose size={16} />
-        </button>
+          {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+        </motion.button>
         <div className="flex items-center gap-1.5">
           <ThotLogo size={18} />
           <span
@@ -42,11 +91,15 @@ export function TitleBar() {
         </div>
       </div>
 
+      {/* Right: controls + window buttons */}
       <div className="flex items-center gap-1.5">
         {/* Theme selector */}
         <div className="relative">
-          <button
-            className="px-2 py-1 rounded-lg text-xs transition-colors duration-150 hover:opacity-80"
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="px-2 py-1 rounded-lg text-xs"
             style={{
               color: "var(--color-text-secondary)",
               border: "1px solid var(--color-border)",
@@ -55,70 +108,101 @@ export function TitleBar() {
             onClick={() => setThemeOpen((v) => !v)}
           >
             {THEMES.find((t) => t.value === theme)?.label ?? "Theme"}
-          </button>
-          {themeOpen && (
-            <div
-              className="absolute right-0 top-full mt-1 rounded-lg overflow-hidden z-50 min-w-[100px]"
-              style={{
-                background: "var(--color-bg-secondary)",
-                border: "1px solid var(--color-border)",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-              }}
-            >
-              {THEMES.map((t) => (
-                <button
-                  key={t.value}
-                  className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-left hover:opacity-80 transition-opacity"
-                  style={{ color: "var(--color-text-primary)" }}
-                  onClick={() => {
-                    setTheme(t.value);
-                    setThemeOpen(false);
-                  }}
-                >
-                  {t.label}
-                  {theme === t.value && (
-                    <Check size={10} style={{ color: "var(--color-accent-primary)" }} />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
+          </motion.button>
+          <AnimatePresence>
+            {themeOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute right-0 top-full mt-1 rounded-lg overflow-hidden z-50 min-w-[100px]"
+                style={{
+                  background: "var(--color-bg-secondary)",
+                  border: "1px solid var(--color-border)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                  transformOrigin: "top right",
+                }}
+              >
+                {THEMES.map((t) => (
+                  <motion.button
+                    key={t.value}
+                    whileHover={{ background: "var(--color-bg-tertiary)" }}
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-left transition-colors"
+                    style={{ color: "var(--color-text-primary)" }}
+                    onClick={() => {
+                      setTheme(t.value);
+                      setThemeOpen(false);
+                    }}
+                  >
+                    {t.label}
+                    {theme === t.value && (
+                      <Check size={10} style={{ color: "var(--color-accent-primary)" }} />
+                    )}
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Dark mode toggle */}
-        <button
-          className="p-1.5 rounded-lg transition-colors duration-150 hover:opacity-80"
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className="p-1.5 rounded-lg"
           style={{ color: "var(--color-text-secondary)" }}
           onClick={() => setDarkMode(!darkMode)}
         >
-          {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={darkMode ? "sun" : "moon"}
+              initial={{ opacity: 0, rotate: -30, scale: 0.7 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: 30, scale: 0.7 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              className="flex"
+            >
+              {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </motion.span>
+          </AnimatePresence>
+        </motion.button>
 
         {/* Settings */}
-        <button
-          className="p-1.5 rounded-lg transition-colors duration-150 hover:opacity-80"
+        <motion.button
+          whileHover={{ scale: 1.1, rotate: 30 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="p-1.5 rounded-lg"
           style={{ color: "var(--color-text-secondary)" }}
           onClick={() => setSettingsOpen(true)}
         >
           <Settings size={16} />
-        </button>
+        </motion.button>
 
-        {/* Window controls — use Rust commands for guaranteed native access */}
+        {/* Window controls — macOS Tahoe style, right-side */}
         <div className="flex items-center gap-1.5 ml-2">
-          <button
-            onClick={() => invoke("minimize_window")}
-            title="Minimize"
-            className="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
-          />
-          <button
-            onClick={() => invoke("toggle_maximize_window")}
-            title="Maximize"
-            className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-400 transition-colors"
-          />
-          <button
+          <WindowControl
+            color="#ff5f57"
+            hoverColor="#ff3b30"
             onClick={() => invoke("close_window")}
+            icon={<X size={7} strokeWidth={2.5} />}
             title="Close"
-            className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-400 transition-colors"
+          />
+          <WindowControl
+            color="#febc2e"
+            hoverColor="#ff9f0a"
+            onClick={() => invoke("minimize_window")}
+            icon={<Minus size={7} strokeWidth={2.5} />}
+            title="Minimize"
+          />
+          <WindowControl
+            color="#28c840"
+            hoverColor="#30d158"
+            onClick={() => invoke("toggle_maximize_window")}
+            icon={<Maximize2 size={6} strokeWidth={2.5} />}
+            title="Maximize"
           />
         </div>
       </div>

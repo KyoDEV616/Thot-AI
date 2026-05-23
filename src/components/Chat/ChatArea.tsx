@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Send, Wifi, WifiOff } from "lucide-react";
 import { useStore, type Message } from "../../store";
 import { MessageBubble } from "./MessageBubble";
@@ -241,22 +241,39 @@ export function ChatArea() {
       <div className="flex-1 overflow-y-auto py-6 px-4">
         <div className="mx-auto flex flex-col gap-4" style={{ maxWidth: "var(--chat-max-width)" }}>
           {messages.length === 0 && (
-            <div className="text-center mt-20">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="text-center mt-20"
+            >
               <div className="mb-4 flex justify-center">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center glyph-float"
                   style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }}
                 >
                   <span className="text-3xl">𓂀</span>
                 </div>
               </div>
-              <h2 className="text-xl font-semibold mb-2" style={{ color: "var(--color-accent-secondary)" }}>
+              <motion.h2
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="text-xl font-semibold mb-2"
+                style={{ color: "var(--color-accent-secondary)" }}
+              >
                 Bienvenido a Thot AI
-              </h2>
-              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.18, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="text-sm"
+                style={{ color: "var(--color-text-muted)" }}
+              >
                 Tu asistente local de IA. Todo queda en tu computadora.
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
           )}
 
           <AnimatePresence initial={false}>
@@ -308,10 +325,13 @@ export function ChatArea() {
             >
               {isStreaming ? "Generando..." : "Enter para enviar · Shift+Enter para nueva línea"}
             </span>
-            <button
+            <motion.button
               onClick={sendMessage}
               disabled={!input.trim() || isStreaming}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 disabled:opacity-40 active:scale-95"
+              whileHover={!input.trim() || isStreaming ? {} : { scale: 1.04 }}
+              whileTap={!input.trim() || isStreaming ? {} : { scale: 0.93 }}
+              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-40"
               style={{
                 background: "var(--color-accent-primary)",
                 color: "white",
@@ -319,7 +339,7 @@ export function ChatArea() {
             >
               <Send size={14} />
               Enviar
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>

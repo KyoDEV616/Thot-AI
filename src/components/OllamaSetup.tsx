@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { ExternalLink, Terminal, RefreshCw } from "lucide-react";
 
 interface Props {
@@ -6,11 +7,19 @@ interface Props {
 
 export function OllamaSetup({ onDismiss }: Props) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-6"
       style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94, y: 12 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-md rounded-2xl p-6 flex flex-col gap-5"
         style={{
           background: "var(--color-bg-secondary)",
@@ -106,9 +115,12 @@ export function OllamaSetup({ onDismiss }: Props) {
         </div>
 
         <div className="flex gap-2">
-          <button
+          <motion.button
             onClick={onDismiss}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-90"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium"
             style={{
               background: "var(--color-accent-primary)",
               color: "white",
@@ -116,9 +128,9 @@ export function OllamaSetup({ onDismiss }: Props) {
           >
             <RefreshCw size={14} />
             Ya lo tengo, reintentar
-          </button>
+          </motion.button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { type Message } from "../../store";
@@ -24,9 +24,9 @@ export function MessageBubble({ message }: Props) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
       className={`flex gap-3 group ${isUser ? "flex-row-reverse" : "flex-row"}`}
     >
       {/* Avatar */}
@@ -78,14 +78,28 @@ export function MessageBubble({ message }: Props) {
 
         {/* Copy button — only for assistant messages */}
         {!isUser && message.content && (
-          <button
+          <motion.button
             onClick={copyToClipboard}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
             className="self-start flex items-center gap-1 px-2 py-0.5 rounded text-xs opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
             style={{ color: "var(--color-text-muted)" }}
           >
-            {copied ? <Check size={11} /> : <Copy size={11} />}
-            {copied ? "Copiado" : "Copiar"}
-          </button>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={copied ? "check" : "copy"}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ duration: 0.12 }}
+                className="flex items-center gap-1"
+              >
+                {copied ? <Check size={11} /> : <Copy size={11} />}
+                {copied ? "Copiado" : "Copiar"}
+              </motion.span>
+            </AnimatePresence>
+          </motion.button>
         )}
       </div>
     </motion.div>
