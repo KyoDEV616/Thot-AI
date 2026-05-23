@@ -5,6 +5,28 @@ use std::process::{Child, Command};
 use std::sync::Mutex;
 use tauri::{Manager, State};
 
+fn wait_for_backend(port: u16) {
+    let addr = format!("127.0.0.1:{}", port);
+    for _ in 0..60 {
+        if std::net::TcpStream::connect(&addr).is_ok() {
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            return;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(500));
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn remove_quarantine() {
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(bundle) = exe.ancestors().nth(3) {
+            let _ = Command::new("xattr")
+                .args(["-cr", &bundle.to_string_lossy()])
+                .output();
+        }
+    }
+}
+
 struct BackendProcess(Mutex<Option<Child>>);
 
 fn find_free_port() -> u16 {
@@ -85,6 +107,9 @@ fn close_window(window: tauri::WebviewWindow) {
 }
 
 fn main() {
+    #[cfg(target_os = "macos")]
+    remove_quarantine();
+
     let port = find_free_port();
 
     tauri::Builder::default()
@@ -93,8 +118,7 @@ fn main() {
         .manage(BackendProcess(Mutex::new(None)))
         .setup(move |app| {
             let child = start_backend(port);
-            // Give the Python backend time to initialize
-            std::thread::sleep(std::time::Duration::from_secs(2));
+            wait_for_backend(port);
             let state: State<BackendProcess> = app.state();
             *state.0.lock().unwrap() = Some(child);
             Ok(())
