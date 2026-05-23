@@ -5,6 +5,8 @@ use std::process::{Child, Command};
 use std::sync::Mutex;
 use tauri::{Manager, State};
 
+// Only used in release mode — polls until the sidecar backend is accepting connections
+#[cfg(not(debug_assertions))]
 fn wait_for_backend(port: u16) {
     let addr = format!("127.0.0.1:{}", port);
     for _ in 0..60 {
@@ -16,7 +18,8 @@ fn wait_for_backend(port: u16) {
     }
 }
 
-#[cfg(target_os = "macos")]
+// Only used in release mode — removes Gatekeeper quarantine so future launches open cleanly
+#[cfg(all(not(debug_assertions), target_os = "macos"))]
 fn remove_quarantine() {
     if let Ok(exe) = std::env::current_exe() {
         if let Some(bundle) = exe.ancestors().nth(3) {
@@ -107,7 +110,7 @@ fn close_window(window: tauri::WebviewWindow) {
 }
 
 fn main() {
-    #[cfg(target_os = "macos")]
+    #[cfg(all(not(debug_assertions), target_os = "macos"))]
     remove_quarantine();
 
     let port = find_free_port();
@@ -118,7 +121,11 @@ fn main() {
         .manage(BackendProcess(Mutex::new(None)))
         .setup(move |app| {
             let child = start_backend(port);
+            // Dev: uvicorn starts in ~1s. Release: poll until sidecar is ready.
+            #[cfg(not(debug_assertions))]
             wait_for_backend(port);
+            #[cfg(debug_assertions)]
+            std::thread::sleep(std::time::Duration::from_secs(2));
             let state: State<BackendProcess> = app.state();
             *state.0.lock().unwrap() = Some(child);
             Ok(())
@@ -127,9 +134,9 @@ fn main() {
             if let tauri::WindowEvent::Destroyed = event {
                 let child = {
                     let state: State<BackendProcess> = window.state();
-                    let c = state.0.lock().unwrap().take(); // MutexGuard dropped at end of this statement
+                    let c = state.0.lock().unwrap().take();
                     c
-                }; // state dropped here, after MutexGuard is already gone
+                };
                 if let Some(mut child) = child {
                     let _ = child.kill();
                 }
