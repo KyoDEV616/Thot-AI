@@ -128,7 +128,7 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
-      - name: Build and release with Tauri
+      - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -166,3 +166,46 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.tauri-args }}
+
+      - name: Build PKG installer (macOS only)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          TRIPLE="${{ matrix.triple }}"
+
+          APP_PATH=$(find src-tauri/target -name "Thot AI.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Thot AI.app not found"
+            exit 1
+          fi
+          echo "Found app at: $APP_PATH"
+
+          mkdir -p pkg-scripts
+          cat > pkg-scripts/postinstall << 'SCRIPT'
+#!/bin/bash
+xattr -cr "/Applications/Thot AI.app" 2>/dev/null || true
+SCRIPT
+          chmod +x pkg-scripts/postinstall
+
+          pkgbuild \
+            --component "$APP_PATH" \
+            --install-location /Applications \
+            --scripts pkg-scripts \
+            --identifier "ai.thot.app" \
+            --version "$VERSION" \
+            "Thot-AI_${VERSION}_${TRIPLE}.pkg"
+
+      - name: Upload PKG to release (macOS only)
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          TRIPLE="${{ matrix.triple }}"
+          gh release upload "${{ github.ref_name }}" \
+            "Thot-AI_${VERSION}_${TRIPLE}.pkg" \
+            --clobber

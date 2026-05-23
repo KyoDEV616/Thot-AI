@@ -95,32 +95,27 @@ It runs open-source language models directly on your computer — no subscriptio
 
 **[Ollama](https://ollama.com) must be installed first.** Then download the file for your platform from the table at the top of this page (or the [Releases](https://github.com/KyoDEV616/Thot-AI/releases) page) and run it — no setup needed.
 
-| Platform | File |
-|----------|------|
-| macOS — Apple Silicon (M1/M2/M3/M4) | `Thot-AI_x.x.x_aarch64.dmg` |
-| macOS — Intel | `Thot-AI_x.x.x_x64.dmg` |
-| Windows 10/11 | `Thot-AI_x.x.x_x64-setup.exe` |
-| Linux — Universal | `Thot-AI_x.x.x_amd64.AppImage` |
-| Linux — Ubuntu / Debian | `Thot-AI_x.x.x_amd64.deb` |
+| Platform | File | Notes |
+|----------|------|-------|
+| macOS — Apple Silicon (M1/M2/M3/M4) | `Thot-AI_x.x.x_aarch64.pkg` | **Recommended** — installs and removes Gatekeeper block automatically |
+| macOS — Apple Silicon (M1/M2/M3/M4) | `Thot-AI_x.x.x_aarch64.dmg` | Manual install — requires `xattr` workaround |
+| Windows 10/11 | `Thot-AI_x.x.x_x64-setup.exe` | |
+| Linux — Universal | `Thot-AI_x.x.x_amd64.AppImage` | |
+| Linux — Ubuntu / Debian | `Thot-AI_x.x.x_amd64.deb` | |
 
 > **What's included:** streaming chat, persistent history, web search (`/web`), and basic file reading (TXT, CSV).
 >
 > **Not included in the installer:** image generation (`/imagen`) and advanced document parsing (PDF, DOCX, XLSX). These require PyTorch and llama-index (~3 GB of ML libraries). See [Build from source](#build-from-source) to enable them.
 
-> **⚠️ macOS — "App is damaged" warning**
+> **⚠️ macOS — "App is damaged" warning (DMG only)**
 >
-> macOS Gatekeeper blocks apps that aren't signed with an Apple Developer certificate. This is expected for open source projects. To open Thot AI after installing:
+> If you downloaded the `.dmg`, macOS Gatekeeper may block it. Use the `.pkg` installer instead — it handles this automatically. If you still want to use the DMG:
 >
-> **Option 1 — Terminal (recommended):**
+> **Terminal:**
 > ```bash
 > xattr -cr /Applications/Thot\ AI.app
 > ```
-> Then double-click the app normally.
->
-> **Option 2 — System Settings:**
-> Go to **System Settings → Privacy & Security**, scroll down and click **"Open Anyway"** next to the Thot AI block message.
->
-> You only need to do this once.
+> Or go to **System Settings → Privacy & Security** and click **"Open Anyway"**. You only need to do this once.
 
 ---
 
