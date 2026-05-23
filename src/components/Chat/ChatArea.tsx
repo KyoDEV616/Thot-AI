@@ -35,7 +35,6 @@ export function ChatArea() {
   } = useStore();
 
   const [input, setInput] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
   const [sysStats, setSysStats] = useState<SystemStats | null>(null);
   const [showOllamaSetup, setShowOllamaSetup] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -293,15 +292,8 @@ export function ChatArea() {
 
       {/* Input */}
       <div className="shrink-0 px-4 pb-4 pt-2">
-        <motion.div
-          className="mx-auto rounded-2xl overflow-hidden"
-          animate={{
-            boxShadow: isFocused
-              ? "0 0 0 1.5px var(--color-accent-primary), 0 4px 20px rgba(0,0,0,0.15)"
-              : "0 0 0 0px transparent",
-            borderColor: isFocused ? "var(--color-accent-primary)" : "var(--color-border)",
-          }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        <div
+          className="mx-auto rounded-2xl overflow-hidden input-container"
           style={{
             maxWidth: "var(--chat-max-width)",
             background: "var(--color-bg-secondary)",
@@ -314,8 +306,6 @@ export function ChatArea() {
             value={input}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
             placeholder="Escribí tu mensaje... (Enter para enviar, Shift+Enter para salto de línea)"
             disabled={isStreaming}
             className="w-full resize-none bg-transparent outline-none px-4 pt-3 pb-2 text-sm leading-relaxed"
@@ -351,7 +341,7 @@ export function ChatArea() {
               Enviar
             </motion.button>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
