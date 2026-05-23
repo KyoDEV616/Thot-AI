@@ -27,17 +27,22 @@ It runs open-source language models directly on your computer — no subscriptio
 
 <br />
 
-### Download v0.1.0
+### Download
+
+<a href="https://github.com/KyoDEV616/Thot-AI/releases/latest">
+  <img src="https://img.shields.io/github/v/release/KyoDEV616/Thot-AI?style=for-the-badge&label=Latest%20Release&labelColor=1a1a2e&color=c9a84c" />
+</a>
 
 | Platform | Download |
 |----------|----------|
-| macOS — Apple Silicon | [Thot-AI_0.1.0_aarch64.dmg](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_aarch64.dmg) |
-| macOS — Intel | [Thot-AI_0.1.0_x64.dmg](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_x64.dmg) |
-| Windows 10/11 | [Thot-AI_0.1.0_x64-setup.exe](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_x64-setup.exe) |
-| Linux — AppImage | [Thot-AI_0.1.0_amd64.AppImage](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_amd64.AppImage) |
-| Linux — Debian/Ubuntu | [Thot-AI_0.1.0_amd64.deb](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_amd64.deb) |
+| macOS — Apple Silicon (M1/M2/M3/M4) | [→ Releases page](https://github.com/KyoDEV616/Thot-AI/releases/latest) |
+| macOS — Intel | [→ Releases page](https://github.com/KyoDEV616/Thot-AI/releases/latest) |
+| Windows 10/11 | [→ Releases page](https://github.com/KyoDEV616/Thot-AI/releases/latest) |
+| Linux — AppImage | [→ Releases page](https://github.com/KyoDEV616/Thot-AI/releases/latest) |
+| Linux — Debian/Ubuntu | [→ Releases page](https://github.com/KyoDEV616/Thot-AI/releases/latest) |
 
-> **[Ollama](https://ollama.com) must be installed first.** See the full [release notes](https://github.com/KyoDEV616/Thot-AI/releases/tag/v0.1.0).
+> **[Ollama](https://ollama.com) must be installed first.**  
+> On the Releases page, expand **Assets** and pick the file that matches your platform.
 
 ---
 
