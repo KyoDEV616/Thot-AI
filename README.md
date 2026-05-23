@@ -72,28 +72,32 @@ It runs open-source language models directly on your computer — no subscriptio
 
 ## 🚀 Installation
 
-### Option 1 — Installer (recommended for end users)
+### Download the installer
 
-Download the installer for your platform from the [**Releases**](../../releases) page:
+**[Ollama](https://ollama.com) must be installed first.** Then grab the file for your platform from the [**Releases**](../../releases) page and run it — no setup needed.
 
-| Platform | File | Notes |
-|----------|------|-------|
-| macOS | `Thot-AI_x.x.x_aarch64.dmg` | Apple Silicon (M1/M2/M3/M4) |
-| macOS | `Thot-AI_x.x.x_x64.dmg` | Intel |
-| Windows | `Thot-AI_x.x.x_x64-setup.exe` | Windows 10/11 |
-| Linux | `Thot-AI_x.x.x_amd64.AppImage` | Universal |
-| Linux | `Thot-AI_x.x.x_amd64.deb` | Ubuntu / Debian |
+| Platform | File |
+|----------|------|
+| macOS — Apple Silicon (M1/M2/M3/M4) | `Thot-AI_x.x.x_aarch64.dmg` |
+| macOS — Intel | `Thot-AI_x.x.x_x64.dmg` |
+| Windows 10/11 | `Thot-AI_x.x.x_x64-setup.exe` |
+| Linux — Universal | `Thot-AI_x.x.x_amd64.AppImage` |
+| Linux — Ubuntu / Debian | `Thot-AI_x.x.x_amd64.deb` |
 
-**[Ollama](https://ollama.com) must be installed before running Thot AI.** The setup wizard will guide you on first launch.
+> **What's included:** streaming chat, persistent history, web search (`/web`), and basic file reading (TXT, CSV).
+>
+> **Not included in the installer:** image generation (`/imagen`) and advanced document parsing (PDF, DOCX, XLSX). These require PyTorch and llama-index (~3 GB of ML libraries). See [Build from source](#build-from-source) to enable them.
 
-> **Note:** Image generation (`/imagen`) requires additional setup. See Option 2.
+---
 
-### Option 2 — Build from source
+### Build from source
+
+Required only if you want the **full feature set** (image generation + advanced file reading) or if you want to contribute to the project.
 
 **Prerequisites:**
 - [Node.js](https://nodejs.org) 20+
 - [Rust](https://rustup.rs) (stable)
-- [Python](https://python.org) 3.11 (3.14 not yet supported by PyTorch)
+- [Python 3.11](https://python.org) — 3.14 is not yet supported by PyTorch
 - [Ollama](https://ollama.com)
 
 ```bash
@@ -101,7 +105,7 @@ Download the installer for your platform from the [**Releases**](../../releases)
 git clone https://github.com/your-username/thot-ai.git
 cd thot-ai
 
-# 2. Set up the Python backend environment
+# 2. Set up the Python backend
 cd backend
 python3.11 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
@@ -115,20 +119,18 @@ npm install
 npm run tauri dev
 ```
 
-> **macOS + Homebrew:** If Python 3.11 is not your system default, install it with `brew install python@3.11` and use `/opt/homebrew/opt/python@3.11/bin/python3.11 -m venv backend/.venv`.
+> **macOS + Homebrew:** If Python 3.11 is not your system default: `brew install python@3.11`, then use `/opt/homebrew/opt/python@3.11/bin/python3.11 -m venv backend/.venv`.
 
-> **Full feature set:** Building from source and installing all dependencies in `requirements.txt` enables every feature, including image generation (`/imagen` via torch + diffusers) and advanced file reading (PDF, DOCX, XLSX via llama-index). The pre-built installer ships a lightweight sidecar that omits these heavy ML libraries by default.
+---
 
 ### Triggering a release (maintainers)
 
-Push a version tag to trigger the GitHub Actions build pipeline:
+Push a version tag — GitHub Actions builds all installers and creates a draft release automatically:
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
-
-GitHub Actions will build installers for macOS (ARM + Intel), Windows, and Linux, and create a draft release with all artifacts attached.
 
 ---
 
