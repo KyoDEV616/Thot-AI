@@ -55,6 +55,7 @@ a = Analysis(
     pathex=["."],
     binaries=binaries,
     datas=datas + [
+        ("main.py", "."),
         ("routers", "routers"),
         ("services", "services"),
     ],
