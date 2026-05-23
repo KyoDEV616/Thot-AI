@@ -62,14 +62,43 @@ export function TitleBar() {
   return (
     <div
       data-tauri-drag-region
-      className="h-10 flex items-center justify-between px-4 shrink-0"
+      className="h-10 flex items-center justify-between px-3 shrink-0"
       style={{
         background: "var(--color-bg-secondary)",
         borderBottom: "1px solid var(--color-border)",
       }}
     >
-      {/* Left: sidebar toggle + app identity */}
-      <div className="flex items-center gap-2">
+      {/* Left: window controls + sidebar toggle + app identity */}
+      <div className="flex items-center gap-3">
+        {/* macOS Tahoe window controls */}
+        <div className="flex items-center gap-1.5">
+          <WindowControl
+            color="#ff5f57"
+            hoverColor="#ff3b30"
+            onClick={() => invoke("close_window")}
+            icon={<X size={7} strokeWidth={2.5} />}
+            title="Close"
+          />
+          <WindowControl
+            color="#febc2e"
+            hoverColor="#ff9f0a"
+            onClick={() => invoke("minimize_window")}
+            icon={<Minus size={7} strokeWidth={2.5} />}
+            title="Minimize"
+          />
+          <WindowControl
+            color="#28c840"
+            hoverColor="#30d158"
+            onClick={() => invoke("toggle_maximize_window")}
+            icon={<Maximize2 size={6} strokeWidth={2.5} />}
+            title="Maximize"
+          />
+        </div>
+
+        {/* Divider */}
+        <div className="w-px h-4 shrink-0" style={{ background: "var(--color-border)" }} />
+
+        {/* Sidebar toggle */}
         <motion.button
           onClick={toggleSidebar}
           whileHover={{ scale: 1.05 }}
@@ -80,8 +109,10 @@ export function TitleBar() {
         >
           {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
         </motion.button>
-        <div className="flex items-center gap-1.5">
-          <ThotLogo size={18} />
+
+        {/* App identity */}
+        <div className="flex items-center gap-2">
+          <ThotLogo size={20} />
           <span
             className="text-sm font-semibold tracking-wide"
             style={{ color: "var(--color-accent-secondary)" }}
@@ -91,7 +122,7 @@ export function TitleBar() {
         </div>
       </div>
 
-      {/* Right: controls + window buttons */}
+      {/* Right: theme + dark mode + settings */}
       <div className="flex items-center gap-1.5">
         {/* Theme selector */}
         <div className="relative">
@@ -128,12 +159,9 @@ export function TitleBar() {
                   <motion.button
                     key={t.value}
                     whileHover={{ background: "var(--color-bg-tertiary)" }}
-                    className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-left transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-left"
                     style={{ color: "var(--color-text-primary)" }}
-                    onClick={() => {
-                      setTheme(t.value);
-                      setThemeOpen(false);
-                    }}
+                    onClick={() => { setTheme(t.value); setThemeOpen(false); }}
                   >
                     {t.label}
                     {theme === t.value && (
@@ -180,31 +208,6 @@ export function TitleBar() {
         >
           <Settings size={16} />
         </motion.button>
-
-        {/* Window controls — macOS Tahoe style, right-side */}
-        <div className="flex items-center gap-1.5 ml-2">
-          <WindowControl
-            color="#ff5f57"
-            hoverColor="#ff3b30"
-            onClick={() => invoke("close_window")}
-            icon={<X size={7} strokeWidth={2.5} />}
-            title="Close"
-          />
-          <WindowControl
-            color="#febc2e"
-            hoverColor="#ff9f0a"
-            onClick={() => invoke("minimize_window")}
-            icon={<Minus size={7} strokeWidth={2.5} />}
-            title="Minimize"
-          />
-          <WindowControl
-            color="#28c840"
-            hoverColor="#30d158"
-            onClick={() => invoke("toggle_maximize_window")}
-            icon={<Maximize2 size={6} strokeWidth={2.5} />}
-            title="Maximize"
-          />
-        </div>
       </div>
     </div>
   );
