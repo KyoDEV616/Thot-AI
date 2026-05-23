@@ -5,3 +5,5 @@ src-tauri/binaries
 src-tauri/Cargo.lock
 src-tauri/Cargo.toml
 src-tauri/build.rs
+src-tauri/tauri.conf.json
+src-tauri/src/lib.rs
