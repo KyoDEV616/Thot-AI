@@ -148,7 +148,21 @@ jobs:
             | Windows 10/11 | `Thot-AI_*_x64-setup.exe` |
             | Linux | `Thot-AI_*_amd64.AppImage` or `.deb` |
 
-            > Image generation and advanced file reading require additional Python setup. See [README](https://github.com/${{ github.repository }}#-installation) for details.
+            ---
+
+            ### ⚠️ macOS — "App is damaged" warning
+
+            This is expected. Thot AI is not signed with an Apple Developer certificate. To open it after installing, run this once in Terminal:
+
+            ```bash
+            xattr -cr /Applications/Thot\ AI.app
+            ```
+
+            Or go to **System Settings → Privacy & Security** and click **"Open Anyway"**.
+
+            ---
+
+            > Image generation (`/imagen`) and advanced file reading (PDF, DOCX, XLSX) require additional Python setup. See the [README](https://github.com/${{ github.repository }}#-installation) for details.
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.tauri-args }}

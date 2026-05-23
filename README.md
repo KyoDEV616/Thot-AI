@@ -107,6 +107,21 @@ It runs open-source language models directly on your computer — no subscriptio
 >
 > **Not included in the installer:** image generation (`/imagen`) and advanced document parsing (PDF, DOCX, XLSX). These require PyTorch and llama-index (~3 GB of ML libraries). See [Build from source](#build-from-source) to enable them.
 
+> **⚠️ macOS — "App is damaged" warning**
+>
+> macOS Gatekeeper blocks apps that aren't signed with an Apple Developer certificate. This is expected for open source projects. To open Thot AI after installing:
+>
+> **Option 1 — Terminal (recommended):**
+> ```bash
+> xattr -cr /Applications/Thot\ AI.app
+> ```
+> Then double-click the app normally.
+>
+> **Option 2 — System Settings:**
+> Go to **System Settings → Privacy & Security**, scroll down and click **"Open Anyway"** next to the Thot AI block message.
+>
+> You only need to do this once.
+
 ---
 
 ### Build from source
