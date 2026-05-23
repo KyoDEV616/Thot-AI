@@ -183,10 +183,7 @@ jobs:
           echo "Found app at: $APP_PATH"
 
           mkdir -p pkg-scripts
-          cat > pkg-scripts/postinstall << 'SCRIPT'
-#!/bin/bash
-xattr -cr "/Applications/Thot AI.app" 2>/dev/null || true
-SCRIPT
+          printf '#!/bin/bash\nxattr -cr "/Applications/Thot AI.app" 2>/dev/null || true\n' > pkg-scripts/postinstall
           chmod +x pkg-scripts/postinstall
 
           pkgbuild \
