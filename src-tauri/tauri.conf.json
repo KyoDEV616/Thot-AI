@@ -37,6 +37,14 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/thot-backend"]
+    "externalBin": ["binaries/thot-backend"],
+    "windows": {
+      "nsis": {
+        "installerHooksPath": "windows/installer-hooks.nsh",
+        "allowDowngrades": true,
+        "installMode": "currentUser",
+        "shortcutName": "Thot AI"
+      }
+    }
   }
 }

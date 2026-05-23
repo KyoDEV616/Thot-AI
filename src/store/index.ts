@@ -61,6 +61,10 @@ interface AppState {
   // Streaming
   isStreaming: boolean;
   setIsStreaming: (v: boolean) => void;
+
+  // Setup
+  firstRunDone: boolean;
+  setFirstRunDone: (v: boolean) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -146,6 +150,9 @@ export const useStore = create<AppState>()(
 
       isStreaming: false,
       setIsStreaming: (v) => set({ isStreaming: v }),
+
+      firstRunDone: false,
+      setFirstRunDone: (v) => set({ firstRunDone: v }),
     }),
     {
       name: "thot-ai-store",
@@ -156,6 +163,7 @@ export const useStore = create<AppState>()(
         selectedModel: state.selectedModel,
         systemPrompt: state.systemPrompt,
         sidebarOpen: state.sidebarOpen,
+        firstRunDone: state.firstRunDone,
       }),
     }
   )

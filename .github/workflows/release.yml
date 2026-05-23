@@ -29,27 +29,34 @@ jobs:
             --title "Thot AI ${{ github.ref_name }}" \
             --notes "## Thot AI ${{ github.ref_name }}
 
-          **Requirements before installing:**
-          - [Ollama](https://ollama.com) — download and install, then pull a model: \`ollama pull llama3.2\`
+          **Instalación en un solo paso — Ollama se instala automáticamente.**
 
-          **Download for your platform (see Assets below):**
-          | Platform | File |
-          |----------|------|
-          | macOS Apple Silicon | \`Thot-AI_*_aarch64.pkg\` ← recommended |
+          **Descargá para tu plataforma (ver Assets abajo):**
+          | Plataforma | Archivo |
+          |------------|---------|
+          | macOS Apple Silicon | \`Thot-AI_*_aarch64.pkg\` ← recomendado |
           | macOS Apple Silicon | \`Thot-AI_*_aarch64.dmg\` |
           | Windows 10/11 | \`Thot-AI_*_x64-setup.exe\` |
-          | Linux | \`Thot-AI_*_amd64.AppImage\` or \`.deb\` |
+          | Linux (Ubuntu/Debian) | \`Thot-AI_*_amd64.deb\` |
+          | Linux (universal) | \`Thot-AI_*_amd64.AppImage\` |
 
           ---
 
-          ### macOS — first launch
+          ### Primer lanzamiento
 
-          Use the \`.pkg\` — it removes the Gatekeeper block automatically after install.
-          If you use the \`.dmg\`, run once in Terminal: \`xattr -cr /Applications/Thot\\ AI.app\`
+          Al abrir la app por primera vez, un wizard te guía para descargar tu primer modelo de IA.
+          No necesitás configurar nada manualmente.
 
-          ---
+          ### macOS
+          Usá el \`.pkg\` — instala Ollama automáticamente y elimina el bloqueo de Gatekeeper.
+          Si usás el \`.dmg\`, instalá Ollama por separado desde [ollama.com](https://ollama.com).
 
-          > Image generation and advanced file reading require additional Python setup. See the [README](https://github.com/${{ github.repository }}#-installation)." \
+          ### Windows
+          El \`.exe\` intenta instalar Ollama silenciosamente. Si falla, lo podés instalar manualmente desde [ollama.com](https://ollama.com).
+
+          ### Linux (.deb)
+          El postinstall del \`.deb\` instala Ollama automáticamente via \`curl | sh\`.
+          El \`.AppImage\` no incluye Ollama — instalalo con: \`curl -fsSL https://ollama.com/install.sh | sh\`" \
             --repo "${{ github.repository }}" 2>/dev/null || echo "Release already exists, continuing."
 
   # ── 2. Build Python sidecar binaries ────────────────────────────────────────
@@ -168,6 +175,30 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+      - name: Download OllamaSetup.exe (Windows only)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "src-tauri/windows" | Out-Null
+          $url = "https://github.com/ollama/ollama/releases/latest/download/OllamaSetup.exe"
+          Invoke-WebRequest -Uri $url -OutFile "src-tauri/windows/OllamaSetup.exe" -UseBasicParsing
+          $size = (Get-Item "src-tauri/windows/OllamaSetup.exe").Length
+          Write-Host "Downloaded OllamaSetup.exe: $size bytes"
+          if ($size -lt 1048576) { Write-Error "OllamaSetup.exe too small — download likely failed"; exit 1 }
+
+      - name: Download Ollama CLI binary (macOS ARM64 only)
+        if: matrix.triple == 'aarch64-apple-darwin'
+        shell: bash
+        run: |
+          mkdir -p pkg-payload/usr/local/bin
+          curl -L --retry 3 --retry-delay 5 \
+            "https://github.com/ollama/ollama/releases/latest/download/ollama-darwin" \
+            -o pkg-payload/usr/local/bin/ollama
+          chmod +x pkg-payload/usr/local/bin/ollama
+          file pkg-payload/usr/local/bin/ollama | grep -q "Mach-O" || \
+            (echo "ERROR: Downloaded file is not a Mach-O binary" && exit 1)
+          echo "Ollama binary downloaded: $(du -sh pkg-payload/usr/local/bin/ollama | cut -f1)"
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
@@ -194,17 +225,81 @@ jobs:
           fi
           echo "Found app at: $APP_PATH"
 
+          # Post-install script: remove quarantine + install Ollama CLI + set up launchd
           mkdir -p pkg-scripts
-          printf '#!/bin/bash\nxattr -cr "/Applications/Thot AI.app" 2>/dev/null || true\n' > pkg-scripts/postinstall
+          cat > pkg-scripts/postinstall << 'POSTINSTALL'
+          #!/bin/bash
+          set -e
+
+          # 1. Remove Gatekeeper quarantine
+          xattr -cr "/Applications/Thot AI.app" 2>/dev/null || true
+
+          # 2. Install Ollama CLI if not already present
+          if ! command -v ollama &>/dev/null; then
+            if [ -f "/usr/local/bin/ollama" ]; then
+              chmod +x "/usr/local/bin/ollama"
+            fi
+          fi
+
+          # 3. Set up launchd plist for the actual logged-in user (not root)
+          TARGET_USER=$(stat -f "%Su" /dev/console 2>/dev/null || echo "")
+          if [ -n "$TARGET_USER" ] && [ "$TARGET_USER" != "root" ]; then
+            USER_HOME=$(eval echo "~$TARGET_USER")
+            PLIST_DIR="$USER_HOME/Library/LaunchAgents"
+            PLIST_PATH="$PLIST_DIR/ai.thot.ollama.plist"
+            mkdir -p "$PLIST_DIR"
+            if [ ! -f "$PLIST_PATH" ]; then
+              cat > "$PLIST_PATH" << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>Label</key><string>ai.thot.ollama</string>
+            <key>ProgramArguments</key>
+            <array><string>/usr/local/bin/ollama</string><string>serve</string></array>
+            <key>RunAtLoad</key><true/>
+            <key>KeepAlive</key><true/>
+            <key>StandardOutPath</key><string>/tmp/ollama.log</string>
+            <key>StandardErrorPath</key><string>/tmp/ollama.err</string>
+          </dict>
+          </plist>
+          PLIST
+              launchctl asuser "$(id -u "$TARGET_USER")" launchctl load "$PLIST_PATH" 2>/dev/null || true
+            fi
+          fi
+          POSTINSTALL
           chmod +x pkg-scripts/postinstall
 
+          # Component 1: the app bundle
           pkgbuild \
             --component "$APP_PATH" \
             --install-location /Applications \
-            --scripts pkg-scripts \
             --identifier "ai.thot.app" \
             --version "$VERSION" \
+            thot-app.pkg
+
+          # Component 2: the Ollama CLI binary (with postinstall script)
+          pkgbuild \
+            --root pkg-payload \
+            --install-location / \
+            --scripts pkg-scripts \
+            --identifier "ai.thot.ollama-helper" \
+            --version "$VERSION" \
+            thot-ollama.pkg
+
+          # Combine into a single flat package
+          productbuild \
+            --synthesize \
+            --package thot-app.pkg \
+            --package thot-ollama.pkg \
+            distribution.xml
+
+          productbuild \
+            --distribution distribution.xml \
+            --package-path . \
             "Thot-AI_${VERSION}_${TRIPLE}.pkg"
+
+          echo "PKG built: Thot-AI_${VERSION}_${TRIPLE}.pkg"
 
       - name: Upload PKG to release (macOS only)
         if: runner.os == 'macOS'
@@ -217,5 +312,52 @@ jobs:
           TRIPLE="${{ matrix.triple }}"
           gh release upload "${{ github.ref_name }}" \
             "Thot-AI_${VERSION}_${TRIPLE}.pkg" \
+            --clobber \
+            --repo "${{ github.repository }}"
+
+      - name: Repack .deb with Ollama postinst (Linux only)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEB=$(find src-tauri/target/release/bundle/deb -name "*.deb" | head -1)
+          if [ -z "$DEB" ]; then echo "ERROR: No .deb found" && exit 1; fi
+          echo "Repacking: $DEB"
+
+          mkdir -p deb-repack/extracted
+          dpkg-deb --raw-extract "$DEB" deb-repack/extracted
+
+          # Regenerate md5sums to avoid dpkg warnings
+          find deb-repack/extracted -not -path '*/DEBIAN/*' -type f | \
+            while read -r f; do md5sum "$f" | sed "s|deb-repack/extracted/||"; done \
+            > deb-repack/extracted/DEBIAN/md5sums
+
+          # Inject postinst script
+          cat > deb-repack/extracted/DEBIAN/postinst << 'POSTINST'
+          #!/bin/bash
+          set -e
+          if ! command -v ollama &>/dev/null; then
+            if command -v curl &>/dev/null; then
+              curl -fsSL https://ollama.com/install.sh | sh
+            else
+              echo "curl not found — install Ollama manually from https://ollama.com/download"
+            fi
+          fi
+          systemctl enable --now ollama 2>/dev/null || true
+          exit 0
+          POSTINST
+          chmod 755 deb-repack/extracted/DEBIAN/postinst
+
+          dpkg-deb --build deb-repack/extracted "$DEB"
+          echo "Repacked: $DEB"
+
+      - name: Upload repacked .deb to release (Linux only)
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DEB=$(find src-tauri/target/release/bundle/deb -name "*.deb" | head -1)
+          gh release upload "${{ github.ref_name }}" "$DEB" \
             --clobber \
             --repo "${{ github.repository }}"
