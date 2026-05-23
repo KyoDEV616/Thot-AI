@@ -23,7 +23,21 @@ It runs open-source language models directly on your computer — no subscriptio
 
 <br />
 
-[🚀 Install](#-installation) · [📖 Architecture](./ARCHITECTURE.md) · [🗺️ Roadmap](#-roadmap) · [🤝 Contributing](#-contributing)
+[📖 Architecture](./ARCHITECTURE.md) · [🗺️ Roadmap](#-roadmap) · [🤝 Contributing](#-contributing)
+
+<br />
+
+### Download v0.1.0
+
+| Platform | Download |
+|----------|----------|
+| macOS — Apple Silicon | [Thot-AI_0.1.0_aarch64.dmg](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_aarch64.dmg) |
+| macOS — Intel | [Thot-AI_0.1.0_x64.dmg](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_x64.dmg) |
+| Windows 10/11 | [Thot-AI_0.1.0_x64-setup.exe](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_x64-setup.exe) |
+| Linux — AppImage | [Thot-AI_0.1.0_amd64.AppImage](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_amd64.AppImage) |
+| Linux — Debian/Ubuntu | [Thot-AI_0.1.0_amd64.deb](https://github.com/KyoDEV616/Thot-AI/releases/download/v0.1.0/Thot-AI_0.1.0_amd64.deb) |
+
+> **[Ollama](https://ollama.com) must be installed first.** See the full [release notes](https://github.com/KyoDEV616/Thot-AI/releases/tag/v0.1.0).
 
 ---
 
@@ -74,7 +88,7 @@ It runs open-source language models directly on your computer — no subscriptio
 
 ### Download the installer
 
-**[Ollama](https://ollama.com) must be installed first.** Then grab the file for your platform from the [**Releases**](../../releases) page and run it — no setup needed.
+**[Ollama](https://ollama.com) must be installed first.** Then download the file for your platform from the table at the top of this page (or the [Releases](https://github.com/KyoDEV616/Thot-AI/releases) page) and run it — no setup needed.
 
 | Platform | File |
 |----------|------|
