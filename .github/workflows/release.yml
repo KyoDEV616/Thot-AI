@@ -20,12 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create draft release
+      - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${{ github.ref_name }}" \
-            --draft \
             --title "Thot AI ${{ github.ref_name }}" \
             --notes "## Thot AI ${{ github.ref_name }}
 
@@ -206,7 +205,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Thot AI ${{ github.ref_name }}'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.tauri-args }}
 
